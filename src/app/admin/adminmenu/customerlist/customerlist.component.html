@@ -1,0 +1,25 @@
+<div>
+<h1 style="text-align: center; background: rgb(41, 141, 207);">Customer list</h1>
+</div>
+
+<table id="table">
+    <tr style="background-color: burlywood;">
+        <td style="background-color: burlywood;">Phone Number</td>
+        <td style="background-color: burlywood;">CustomerName</td>
+        <td style="background-color: burlywood;">Age</td>
+        <td style="background-color: burlywood;">Gender</td>
+        <td style="background-color: burlywood;">EmailId</td>
+        <td style="background-color: burlywood;">AccountStatus</td>
+
+    </tr>
+    <ng-container *ngFor="let cust of customerList">
+        <tr >
+            <td>{{cust.phoneNo}}</td>
+            <td>{{cust.custName}}</td>
+            <td>{{cust.age}}</td>
+            <td>{{cust.gender}}</td>
+            <td>{{cust.emailId}}</td>
+            <td>{{cust.accountStatus}}</td>
+        </tr>
+    </ng-container>
+</table>

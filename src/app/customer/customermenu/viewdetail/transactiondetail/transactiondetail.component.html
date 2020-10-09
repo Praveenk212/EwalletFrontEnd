@@ -1,0 +1,25 @@
+<div>
+    <h3 style="text-align: center; background: rgb(41, 141, 207);color: black;">Transaction details of {{phnNumber}}</h3>
+</div>
+    <table id="table">
+        <tr style="background-color: burlywood;">
+            <td style="background-color: burlywood;">Amount Transfer</td>
+            <td style="background-color: burlywood;">Date</td>
+            <td style="background-color: burlywood;">Amount Received </td>
+            <td style="background-color: burlywood;">senderMobileNumber</td>
+            <td style="background-color: burlywood;">receiverMobileNumber</td>
+        </tr>
+        <ng-container *ngFor="let ar of transaction">
+            <tr >
+                <td> {{ar.amtTransfer}}</td>
+                <td> {{ar.dateoftransfer}}</td>
+                <td> {{ar.amtReceived}}</td>
+                <td>{{ar.senderPhnNumber}}</td>
+                <td>{{ar.receiverPhnNumber}}</td>
+            </tr>
+        </ng-container>
+    </table>
+    <div>
+        {{message}}
+    </div>
+    

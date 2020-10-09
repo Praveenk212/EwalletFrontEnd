@@ -1,0 +1,17 @@
+<h1 style="text-align: center; background: rgb(41, 141, 207);color: black;">Admin Menu</h1>
+    <div id="nav">
+                <br>
+                <a routerLink="getaccountstoapprove"  class="link1">Pending Accounts</a>
+                <br>
+                <a routerLink="getalltransactions"  class="link1">View all Transaction</a>
+                <br>
+                <a routerLink="customerlist"  class="link1">View Customer List</a>
+                <br>
+                <a routerLink=""  class="link1"  (click)=logout()>Logout </a>
+        <br class="clear" />
+    </div>
+    <div  id="txt" align="center">
+        <router-outlet></router-outlet>
+    </div>
+
+

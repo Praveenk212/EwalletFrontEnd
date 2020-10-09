@@ -1,0 +1,19 @@
+
+<h1 style="text-align: center; background: rgb(41, 141, 207);color: black;">Customer Menu</h1>
+<h3 style="text-align: center; background: rgb(41, 141, 207);color: black;">Welcome  {{customer?.custName}} </h3>
+    <div id="nav">
+                <br>
+                <a routerLink="transfermoney"  class="link1">Transfer Money</a>
+                <br>
+                <a routerLink="viewdetail"  class="link1">View Detail</a>
+                <br>
+                <a routerLink="updatedetail"  class="link1">Update Detail</a>
+                <br>
+                <a routerLink=""  (click)=logout() >Logout</a>
+        <br class="clear" />
+    </div>
+    <div  id="txt" align="center">
+        <router-outlet></router-outlet>
+    </div>
+
+

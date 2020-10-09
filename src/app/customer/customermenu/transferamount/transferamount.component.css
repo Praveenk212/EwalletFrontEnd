@@ -1,0 +1,16 @@
+#table
+{
+    border: black;
+    border-style: double;
+    color: black;
+}
+#message
+{
+    background-color: yellowgreen;
+    color: black;
+}
+.alert
+{
+    color: red;
+}
+

@@ -1,0 +1,32 @@
+.form-group
+{
+    border: burlywood;
+    border-style: double;
+    color: black;
+    background:rgb(34, 157, 194);
+    position: relative;
+    border: 3px solid green;
+}
+
+#addCustomerForm{
+    background: white;
+    color: black;
+    border-radius: 2px;
+    border: burlywood;
+}
+div{
+    background: white;
+    color: black;
+    border-radius: 2px;
+    border: burlywood; 
+}
+
+.alert
+{
+    color: red;
+}
+
+#message
+{
+    color: green;
+}

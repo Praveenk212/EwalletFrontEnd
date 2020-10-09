@@ -1,0 +1,20 @@
+#table
+{
+    border: black;
+    border-style: double;
+    background-color: coral;
+}
+tr{
+    border: black;
+    border-style: solid;
+    background: aqua;
+}
+td{
+    border: black;
+    border-style: solid;
+    background: aqua;
+}
+#top
+{
+    background: rgb(57, 211, 216);
+}

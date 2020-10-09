@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+</head>
+
+<body>
+    <h3 style="text-align: center; background: rgb(41, 141, 207);color: black;">Customer Login Page</h3>
+    <form id="addCustomerForm" name="addCustomerForm" #addCustomerForm="ngForm">
+        <table>
+           <div class="form-group">
+               <tr>
+                   <td>
+                       <label for="mobileNos">PhoneNumber&nbsp; &nbsp;</label>
+                   </td>
+                   <td>
+                       <input [(ngModel)]="mobileNo" required maxlength="100" pattern="([6-9]{1}[0-9]{9})+" ngModel #mobileNos="ngModel"
+                   type="text" name="mobileNo" id="mobileNo" class="form-control"> 
+                   </td>
+               </tr>
+               
+              
+           </div>
+           <div class="alert alert-danger" *ngIf="mobileNos.touched && !mobileNos.valid">should have 10 digits only and starts with number between 6-9</div>
+       
+       <div class="form-group">
+           <tr>
+   
+               <td>
+                   <label for="PassWords">PassWord&nbsp; &nbsp;  &nbsp; &nbsp;&nbsp; &nbsp; </label>
+               </td>
+               <td>
+                   <input type="password" [(ngModel)]="passWord"
+                   name="PassWords"  #PassWords="ngModel"  id="PassWords" class="form-control" required 
+                   pattern="(?=.*\d)(?=.*[a-z])(?=.*[@#$%])(?=.*[A-Z]).{8,}">
+               </td>
+           </tr> 
+       </div>
+       <div class="alert alert-danger" *ngIf="PassWords.touched && !PassWords.valid">Password Should contain a small letter
+           ,a capital letter,special character and digits
+       </div>
+       <div class="form-group">
+
+        <tr style="text-align: center;">
+            <td colspan="10">
+                <input type="button" value="Login" (click)="login($event)" style="background-color:rgb(179, 255, 0);">
+            </td>
+        </tr>
+       </div>
+       <div class="form-group">
+        <tr style="text-align: center;">
+            <td colspan="2" >
+               New User ------ <input style="background-color: rgb(179, 255, 0);" type="submit" value="click here" (click)="newUser()">
+            </td>
+        </tr>
+        </div>
+    </table>
+</form>
+    <!-- <h1>{{userName}}</h1>
+    <h1>{{passWord}}</h1> -->
+
+</body>
+
+</html>

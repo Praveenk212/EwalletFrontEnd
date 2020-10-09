@@ -1,0 +1,118 @@
+<h3 style="text-align: center; background: rgba(10,127,153,0.8); color: black;">New User Form :</h3><br>
+<head>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+</head>
+ <form id="addCustomerForm" name="addCustomerForm" #addCustomerForm="ngForm">
+     <table>
+        <div class="form-group">
+            <tr>
+                <td>
+                    <label for="phoneNos">Phone Number&nbsp; &nbsp;</label>
+                </td>
+                <td>
+                    <input [(ngModel)]="phoneNo" required maxlength="100" pattern="([6-9]{1}[0-9]{9})+" ngModel #phoneNos="ngModel"
+                type="text" name="phoneNo" id="phoneNo" class="form-control"> 
+                </td>
+            </tr>
+            
+           
+        </div>
+        <div class="alert alert-danger" *ngIf="phoneNos.touched && !phoneNos.valid">should have 10 digits only and starts with number between 6-9</div>
+    
+    <div class="form-group">
+        <tr>
+
+            <td>
+                <label for="PassWords">PassWord&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; </label>
+            </td>
+            <td>
+                <input type="text" [(ngModel)]="passWord"
+                name="PassWords"  #PassWords="ngModel"  id="PassWords" class="form-control" required 
+                pattern="(?=.*\d)(?=.*[a-z])(?=.*[@#$%])(?=.*[A-Z]).{8,}">
+            </td>
+        </tr> 
+    </div>
+    <div class="alert alert-danger" *ngIf="PassWords.touched && !PassWords.valid">Password Should contain a small letter
+        ,a capital letter,special character and digits range(8,any)
+    </div>
+    <div class="form-group">
+
+        <tr>
+            <td>
+                <label for="custsName">Customer Name&nbsp; &nbsp;</label>
+            </td>
+            <td>
+                <input [(ngModel)]="custName" required maxlength="100" pattern="[a-zA-Z ]+" ngModel #custsName="ngModel"
+                type="text" name="custsName" id="custsName" class="form-control">
+            </td>
+        </tr>
+       
+       
+    </div>
+    <div class="alert alert-danger" *ngIf="custsName.touched && !custsName.valid">Name should only have alphabet</div>
+
+    <div class="form-group">
+
+        <tr>
+            <td>
+                <label for="ages">Age&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; </label>
+            </td>
+            <td>
+                <input [(ngModel)]="age" required maxlength="100" pattern="([1-9]{1}[0-9]{0,})+" ngModel #ages="ngModel" type="text"
+            name="ages" id="ages" class="form-control">
+            </td>
+        </tr>
+
+       
+        
+    </div>
+    <div class="alert alert-danger" *ngIf="ages.touched && !ages.valid">only numbers less than 100 are allowed
+    </div>
+
+
+    <div class="form-group">
+        <tr>
+            <td>
+                <label for="genders">Gender&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp;</label>
+            </td>
+            <td>
+                <input [(ngModel)]="gender" required maxlength="100" pattern="[a-zA-Z]+" ngModel #genders="ngModel"
+                type="text" name="gender" id="gender" class="form-control">
+            </td>
+        </tr>
+
+       
+       
+    </div>
+    <div class="alert alert-danger" *ngIf="genders.touched && !genders.valid">only alphabets are allowed</div>
+   
+    
+
+    <div class="form-group">
+
+        <tr>
+            <td>
+                <label for="emailIds">EmailId&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp; </label>
+            </td>
+            <td>
+                <input [(ngModel)]="emailId" required maxlength="100" ngModel #emailIds="ngModel" 
+                pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+                type="email" name="emailId" id="emailId" class="form-control"> 
+            </td>
+        </tr>
+        
+        
+    </div>
+    <div class="alert alert-danger" *ngIf="emailIds.touched && !emailIds.valid">email format is not valid</div>
+
+    <div class="form-group" style="align-self: center;">
+        <input aria-colspan="3" type="button" [disabled]="!addCustomerForm.valid" class="btn btn-primary" id="addCustomer" value="Submit"
+            (click)="submit()">
+    </div>
+    
+    <div class="alert alert-success" id="message" style="text-align: left; font-weight: bold; margin-top: 10px;">
+        {{message}}</div>
+    </table>
+</form>
