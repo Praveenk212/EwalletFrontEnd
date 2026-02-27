@@ -4,7 +4,7 @@
 
 This repository now includes:
 
-- A **GitHub Actions CI pipeline** to install dependencies, build, and smoke-run the service on every push/PR (supports both npm and yarn lockfiles).
+- A **GitHub Actions CI pipeline** to install dependencies, build, and smoke-run the service on every push/PR (supports both npm and yarn lockfiles), and gracefully skips build steps when no Node project exists in the repository.
 - **Dependabot** configuration to keep npm and GitHub Actions dependencies up to date automatically.
 
 ### Angular version updates
