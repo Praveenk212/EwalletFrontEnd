@@ -4,8 +4,18 @@
 
 This repository now includes:
 
-- A **GitHub Actions CI pipeline** to install dependencies, build, and smoke-run the service on every push/PR (supports both npm and yarn lockfiles), and gracefully skips build steps when no Node project exists in the repository.
+- A **GitHub Actions CI pipeline** to install dependencies, build, and smoke-run the service on every push/PR.
 - **Dependabot** configuration to keep npm and GitHub Actions dependencies up to date automatically.
+
+## Branch sync guidance
+
+If your latest code is currently on `master`, open a PR from `master` to `main` so `main` becomes the up-to-date default branch history.
+
+Recommended flow:
+
+1. Create a new branch from `master`.
+2. Merge `main` into that new branch.
+3. Open a PR from the new branch to `main`.
 
 ### Angular version updates
 
@@ -22,5 +32,3 @@ npm install
 npm run build
 npm run start
 ```
-
-> Note: the current repository snapshot does not yet include Angular source files (`package.json` / `angular.json`) in root, so automatic in-repo framework upgrade could not be executed here.
