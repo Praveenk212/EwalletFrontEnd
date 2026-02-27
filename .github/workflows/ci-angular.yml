@@ -1,0 +1,167 @@
+name: Angular CI/CD
+
+on:
+  push:
+    branches: ["main", "master"]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: angular-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-run:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Detect project root
+        id: project
+        run: |
+          PROJECT_DIR="$(dirname "$(find . -name package.json -not -path './node_modules/*' | head -n 1)")"
+
+          if [ -z "$PROJECT_DIR" ] || [ "$PROJECT_DIR" = "." ] && [ ! -f package.json ]; then
+            echo "has_project=false" >> "$GITHUB_OUTPUT"
+            echo "No package.json found in repository. Skipping build-and-run job gracefully."
+          else
+            [ -z "$PROJECT_DIR" ] && PROJECT_DIR="."
+            echo "has_project=true" >> "$GITHUB_OUTPUT"
+            echo "project_dir=$PROJECT_DIR" >> "$GITHUB_OUTPUT"
+            echo "Detected project directory: $PROJECT_DIR"
+          fi
+
+      - name: Skip when no Node/Angular project exists
+        if: steps.project.outputs.has_project != 'true'
+        run: echo "Skipping CI build because package.json was not found."
+
+      - name: Cache npm dependencies
+        if: ${{ steps.project.outputs.has_project == 'true' && hashFiles('**/package-lock.json') != '' }}
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
+      - name: Cache yarn dependencies
+        if: ${{ steps.project.outputs.has_project == 'true' && hashFiles('**/yarn.lock') != '' }}
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/yarn
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Detect package manager
+        if: steps.project.outputs.has_project == 'true'
+        id: pm
+        run: |
+          cd "${{ steps.project.outputs.project_dir }}"
+          if [ -f yarn.lock ]; then
+            echo "name=yarn" >> "$GITHUB_OUTPUT"
+            echo "install=yarn install --frozen-lockfile" >> "$GITHUB_OUTPUT"
+          else
+            echo "name=npm" >> "$GITHUB_OUTPUT"
+            if [ -f package-lock.json ]; then
+              echo "install=npm ci" >> "$GITHUB_OUTPUT"
+            else
+              echo "install=npm install" >> "$GITHUB_OUTPUT"
+            fi
+          fi
+
+      - name: Install dependencies
+        if: steps.project.outputs.has_project == 'true'
+        run: |
+          cd "${{ steps.project.outputs.project_dir }}"
+          ${{ steps.pm.outputs.install }}
+
+      - name: Detect Angular project
+        if: steps.project.outputs.has_project == 'true'
+        id: detect_angular
+        run: |
+          cd "${{ steps.project.outputs.project_dir }}"
+          if [ -f angular.json ]; then
+            echo "is_angular=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_angular=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build Angular app
+        if: steps.project.outputs.has_project == 'true' && steps.detect_angular.outputs.is_angular == 'true'
+        run: |
+          cd "${{ steps.project.outputs.project_dir }}"
+          if [ "${{ steps.pm.outputs.name }}" = "yarn" ]; then
+            if yarn run | grep -q " build"; then
+              yarn build --configuration production
+            else
+              npx ng build --configuration production
+            fi
+          else
+            if npm run | grep -q "build"; then
+              npm run build -- --configuration production
+            else
+              npx ng build --configuration production
+            fi
+          fi
+
+      - name: Build non-Angular Node app
+        if: steps.project.outputs.has_project == 'true' && steps.detect_angular.outputs.is_angular != 'true'
+        run: |
+          cd "${{ steps.project.outputs.project_dir }}"
+          if [ "${{ steps.pm.outputs.name }}" = "yarn" ]; then
+            if yarn run | grep -q " build"; then
+              yarn build
+            else
+              echo "No build script found. Skipping build."
+            fi
+          else
+            if npm run | grep -q "build"; then
+              npm run build
+            else
+              echo "No build script found. Skipping build."
+            fi
+          fi
+
+      - name: Run application smoke check
+        if: steps.project.outputs.has_project == 'true'
+        run: |
+          cd "${{ steps.project.outputs.project_dir }}"
+
+          if [ "${{ steps.pm.outputs.name }}" = "yarn" ]; then
+            if yarn run | grep -q " start"; then
+              yarn start --host 0.0.0.0 --port 4200 > app.log 2>&1 &
+              APP_PID=$!
+            else
+              echo "No start script found. Skipping run smoke check."
+              exit 0
+            fi
+          else
+            if npm run | grep -q "start"; then
+              npm run start -- --host 0.0.0.0 --port 4200 > app.log 2>&1 &
+              APP_PID=$!
+            else
+              echo "No start script found. Skipping run smoke check."
+              exit 0
+            fi
+          fi
+
+          trap "kill $APP_PID" EXIT
+          for i in {1..40}; do
+            if curl -fsS "http://127.0.0.1:4200" > /dev/null; then
+              echo "Application is reachable on port 4200."
+              exit 0
+            fi
+            sleep 2
+          done
+
+          echo "Application failed to become healthy. Dumping logs:"
+          cat app.log
+          exit 1
