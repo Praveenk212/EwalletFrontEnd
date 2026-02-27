@@ -1,0 +1,93 @@
+name: Angular CI/CD
+
+on:
+  push:
+    branches: ["main", "master"]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: angular-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-run:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            **/package-lock.json
+
+      - name: Validate project files
+        run: |
+          if [ ! -f package.json ]; then
+            echo "No package.json found at repo root."
+            echo "This workflow expects an Angular/Node project in repository root."
+            exit 1
+          fi
+
+      - name: Install dependencies
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
+
+      - name: Detect Angular project
+        id: detect_angular
+        run: |
+          if [ -f angular.json ]; then
+            echo "is_angular=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_angular=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build Angular app
+        if: steps.detect_angular.outputs.is_angular == 'true'
+        run: |
+          if npm run | grep -q "build"; then
+            npm run build -- --configuration production
+          else
+            npx ng build --configuration production
+          fi
+
+      - name: Build non-Angular Node app
+        if: steps.detect_angular.outputs.is_angular != 'true'
+        run: |
+          if npm run | grep -q "build"; then
+            npm run build
+          else
+            echo "No build script found. Skipping build."
+          fi
+
+      - name: Run application smoke check
+        run: |
+          if npm run | grep -q "start"; then
+            npm run start -- --host 0.0.0.0 --port 4200 > app.log 2>&1 &
+            APP_PID=$!
+            trap "kill $APP_PID" EXIT
+
+            for i in {1..40}; do
+              if curl -fsS "http://127.0.0.1:4200" > /dev/null; then
+                echo "Application is reachable on port 4200."
+                exit 0
+              fi
+              sleep 2
+            done
+
+            echo "Application failed to become healthy. Dumping logs:"
+            cat app.log
+            exit 1
+          else
+            echo "No start script found. Skipping run smoke check."
+          fi
