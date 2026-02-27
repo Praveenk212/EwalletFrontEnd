@@ -22,10 +22,24 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: |
-            package-lock.json
-            **/package-lock.json
+
+      - name: Cache npm dependencies
+        if: ${{ hashFiles('**/package-lock.json') != '' }}
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
+      - name: Cache yarn dependencies
+        if: ${{ hashFiles('**/yarn.lock') != '' }}
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/yarn
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
 
       - name: Validate project files
         run: |
@@ -35,13 +49,25 @@ jobs:
             exit 1
           fi
 
-      - name: Install dependencies
+      - name: Detect package manager
+        id: pm
         run: |
-          if [ -f package-lock.json ]; then
-            npm ci
+          if [ -f yarn.lock ]; then
+            echo "name=yarn" >> "$GITHUB_OUTPUT"
+            echo "install=yarn install --frozen-lockfile" >> "$GITHUB_OUTPUT"
+            echo "run=yarn" >> "$GITHUB_OUTPUT"
           else
-            npm install
+            echo "name=npm" >> "$GITHUB_OUTPUT"
+            if [ -f package-lock.json ]; then
+              echo "install=npm ci" >> "$GITHUB_OUTPUT"
+            else
+              echo "install=npm install" >> "$GITHUB_OUTPUT"
+            fi
+            echo "run=npm run" >> "$GITHUB_OUTPUT"
           fi
+
+      - name: Install dependencies
+        run: ${{ steps.pm.outputs.install }}
 
       - name: Detect Angular project
         id: detect_angular
@@ -55,39 +81,66 @@ jobs:
       - name: Build Angular app
         if: steps.detect_angular.outputs.is_angular == 'true'
         run: |
-          if npm run | grep -q "build"; then
-            npm run build -- --configuration production
+          if [ "${{ steps.pm.outputs.name }}" = "yarn" ]; then
+            if yarn run | grep -q " build"; then
+              yarn build --configuration production
+            else
+              npx ng build --configuration production
+            fi
           else
-            npx ng build --configuration production
+            if npm run | grep -q "build"; then
+              npm run build -- --configuration production
+            else
+              npx ng build --configuration production
+            fi
           fi
 
       - name: Build non-Angular Node app
         if: steps.detect_angular.outputs.is_angular != 'true'
         run: |
-          if npm run | grep -q "build"; then
-            npm run build
+          if [ "${{ steps.pm.outputs.name }}" = "yarn" ]; then
+            if yarn run | grep -q " build"; then
+              yarn build
+            else
+              echo "No build script found. Skipping build."
+            fi
           else
-            echo "No build script found. Skipping build."
+            if npm run | grep -q "build"; then
+              npm run build
+            else
+              echo "No build script found. Skipping build."
+            fi
           fi
 
       - name: Run application smoke check
         run: |
-          if npm run | grep -q "start"; then
-            npm run start -- --host 0.0.0.0 --port 4200 > app.log 2>&1 &
-            APP_PID=$!
-            trap "kill $APP_PID" EXIT
-
-            for i in {1..40}; do
-              if curl -fsS "http://127.0.0.1:4200" > /dev/null; then
-                echo "Application is reachable on port 4200."
-                exit 0
-              fi
-              sleep 2
-            done
-
-            echo "Application failed to become healthy. Dumping logs:"
-            cat app.log
-            exit 1
+          if [ "${{ steps.pm.outputs.name }}" = "yarn" ]; then
+            if yarn run | grep -q " start"; then
+              yarn start --host 0.0.0.0 --port 4200 > app.log 2>&1 &
+              APP_PID=$!
+            else
+              echo "No start script found. Skipping run smoke check."
+              exit 0
+            fi
           else
-            echo "No start script found. Skipping run smoke check."
+            if npm run | grep -q "start"; then
+              npm run start -- --host 0.0.0.0 --port 4200 > app.log 2>&1 &
+              APP_PID=$!
+            else
+              echo "No start script found. Skipping run smoke check."
+              exit 0
+            fi
           fi
+
+          trap "kill $APP_PID" EXIT
+          for i in {1..40}; do
+            if curl -fsS "http://127.0.0.1:4200" > /dev/null; then
+              echo "Application is reachable on port 4200."
+              exit 0
+            fi
+            sleep 2
+          done
+
+          echo "Application failed to become healthy. Dumping logs:"
+          cat app.log
+          exit 1
